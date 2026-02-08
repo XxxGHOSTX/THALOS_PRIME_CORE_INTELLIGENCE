@@ -1,0 +1,13 @@
+# THALOS PRIME Core Dependencies
+# These are minimal dependencies for the core system
+
+# Configuration and data handling
+PyYAML>=6.0
+toml>=0.10.2
+
+# Process and system management
+psutil>=5.9.0
+
+# Optional: For enhanced features
+# colorama>=0.4.6  # For colored terminal output
+# rich>=13.0.0     # For rich terminal output
