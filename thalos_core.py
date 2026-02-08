@@ -394,7 +394,8 @@ class BuildOrchestrator:
             cached = json.loads(cache_file.read_text())
             # Simple validation - could be more sophisticated
             return cached.get('signatures') == self.context.file_signatures
-        except:
+        except Exception as e:
+            # Invalid or corrupted cache
             return False
     
     def _parallel_build(self) -> Tuple[bool, str]:
@@ -513,7 +514,8 @@ class BuildOrchestrator:
             try:
                 data = json.loads(package_json.read_text())
                 return script_name in data.get('scripts', {})
-            except:
+            except Exception as e:
+                # Cannot read or parse package.json
                 pass
         return False
     
