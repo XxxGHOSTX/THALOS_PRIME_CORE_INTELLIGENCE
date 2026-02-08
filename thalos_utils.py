@@ -69,7 +69,8 @@ class MetricsCollector:
         if self.metrics_file.exists():
             try:
                 metrics = json.loads(self.metrics_file.read_text())
-            except:
+            except Exception as e:
+                # Start fresh if file is corrupted
                 pass
         
         # Append new build
@@ -102,7 +103,8 @@ class MetricsCollector:
                 'average_duration': avg_duration,
                 'cache_hit_rate': cache_hits / total_builds if total_builds > 0 else 0
             }
-        except:
+        except Exception as e:
+            # Return empty stats if there's an error
             return {}
 
 
@@ -184,7 +186,8 @@ class SmartCache:
             if cache_file.exists():
                 try:
                     return json.loads(cache_file.read_text())
-                except:
+                except Exception as e:
+                    # Invalid cache, return None
                     pass
         return None
     
@@ -237,7 +240,8 @@ class SmartCache:
         if self.index_file.exists():
             try:
                 return json.loads(self.index_file.read_text())
-            except:
+            except Exception as e:
+                # Start fresh if index is corrupted
                 pass
         return {}
     
@@ -321,7 +325,8 @@ class PatternLearner:
         if self.learning_file.exists():
             try:
                 return json.loads(self.learning_file.read_text())
-            except:
+            except Exception as e:
+                # Start fresh if file is corrupted
                 pass
         return {}
     
@@ -347,5 +352,6 @@ def detect_cpu_cores() -> int:
     try:
         import multiprocessing
         return multiprocessing.cpu_count()
-    except:
-        return 4  # Default fallback
+    except Exception as e:
+        # Default fallback if detection fails
+        return 4

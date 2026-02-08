@@ -156,7 +156,8 @@ class IntelligentAnalyzer:
                                 for indicator in patterns['indicators']:
                                     if indicator in content:
                                         language_scores[lang] += 1
-                except (OSError, UnicodeDecodeError):
+                except (OSError, UnicodeDecodeError) as e:
+                    # Skip files that can't be read
                     pass
         
         # Select languages with significant presence
@@ -187,7 +188,8 @@ class IntelligentAnalyzer:
                     for framework, patterns in self.FRAMEWORK_PATTERNS.items():
                         if any(pattern in content.lower() for pattern in patterns):
                             frameworks_found.add(framework)
-                except (OSError, UnicodeDecodeError):
+                except (OSError, UnicodeDecodeError) as e:
+                    # Skip files that can't be read
                     pass
         
         self.context.frameworks = list(frameworks_found)
@@ -259,7 +261,8 @@ class IntelligentAnalyzer:
                 deps.extend([line.split('==')[0].split('>=')[0].split('~=')[0].strip() 
                            for line in content.split('\n') 
                            if line.strip() and not line.startswith('#')])
-            except:
+            except Exception as e:
+                # Skip if file can't be read
                 pass
         
         # Check pyproject.toml
@@ -270,7 +273,8 @@ class IntelligentAnalyzer:
                 # Simple extraction, could be enhanced with toml parser
                 if 'dependencies' in content:
                     deps.append('pyproject-dependencies')
-            except:
+            except Exception as e:
+                # Skip if file can't be read
                 pass
         
         return deps
@@ -287,7 +291,8 @@ class IntelligentAnalyzer:
                     deps.extend(data['dependencies'].keys())
                 if 'devDependencies' in data:
                     deps.extend(data['devDependencies'].keys())
-            except:
+            except Exception as e:
+                # Skip if file can't be read or parsed
                 pass
         
         return deps
@@ -307,7 +312,8 @@ class IntelligentAnalyzer:
                         signature = hashlib.sha256(content).hexdigest()[:16]
                         rel_path = str(file_path.relative_to(self.root_path))
                         signatures[rel_path] = signature
-                except:
+                except Exception as e:
+                    # Skip files that can't be read
                     pass
         
         self.context.file_signatures = signatures
@@ -532,9 +538,19 @@ class BuildOrchestrator:
     
     def save_build_cache(self):
         """Save build cache for future use"""
+        # Get maximum modification time from tracked files
+        max_mtime = 0
+        for file_path in self.context.file_signatures.keys():
+            try:
+                full_path = self.context.root_path / file_path
+                mtime = os.path.getmtime(full_path)
+                max_mtime = max(max_mtime, mtime)
+            except OSError:
+                pass
+        
         cache_data = {
             'signatures': self.context.file_signatures,
-            'timestamp': os.path.getmtime(self.context.root_path),
+            'timestamp': max_mtime,
             'build_tools': self.context.build_tools
         }
         
