@@ -2,7 +2,7 @@
 # These are minimal dependencies for the core system
 
 # Configuration and data handling
-PyYAML>=6.0
+PyYAML>=6.0.3
 toml>=0.10.2
 
 # Process and system management
